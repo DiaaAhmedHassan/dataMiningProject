@@ -24,6 +24,7 @@ class geneticFeatureSelection():
             # give all the features true
             chromosome = np.ones(n_features)
 
+            
             # get the first 30% of the features and give them false
             chromosome[: int(0.3*n_features)] = False
 
