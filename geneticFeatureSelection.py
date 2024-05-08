@@ -80,7 +80,7 @@ class geneticFeatureSelection():
             population_next_generation.append(chromosome)
         return population_next_generation
 
-    def create_generations(self, df, label, size, n_features, n_parents, mutation_rate, n_generations, x_train, x_test, y_train, y_test):
+    def create_generations(self, df, label, size, n_features, n_parents, mutation_rate, n_generations):
 
         best_chromosome = []
         best_score = []
