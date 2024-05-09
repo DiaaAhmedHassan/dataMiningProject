@@ -22,7 +22,7 @@ class geneticFeatureSelection():
         population = []
         for i in range(n_children):
             # give all the features true
-            chromosome = np.ones(n_features)
+            chromosome = np.zeros(n_features)
 
             
             # get the first 30% of the features and give them false
@@ -35,15 +35,20 @@ class geneticFeatureSelection():
             population.append(chromosome)
         return population
     
-    def fitness_scores(self, population):
+    def fitness_scores(self, population, threshold):
         scores = []
 
         # print('calculating the fitness \n')
         for chromosome in population:
-            self.model.fit(self.x_train.iloc[:, chromosome], self.y_train)
-            prediction = self.model.predict(self.x_test.iloc[:, chromosome])
-            scores.append(accuracy_score(self.y_test, prediction))
-            # print('iteration finished')
+            sm = chromosome.sum()
+            if(sm < threshold):
+                reward = 0 if (sm == 0) else (1/(sm ** 2))
+                self.model.fit(self.x_train.iloc[:, chromosome], self.y_train)
+                prediction = self.model.predict(self.x_test.iloc[:, chromosome])
+                scores.append(accuracy_score(self.y_test, prediction) + int(reward))
+                # print('iteration finished')
+            else:
+                scores.append(-10)
         
         scores, population = np.array(scores), np.array(population)
         inds = np.argsort(scores)
@@ -81,7 +86,7 @@ class geneticFeatureSelection():
             population_next_generation.append(chromosome)
         return population_next_generation
 
-    def create_generations(self, df, label, size, n_features, n_parents, mutation_rate, n_generations):
+    def create_generations(self, size, n_features, n_parents, mutation_rate, n_generations, threshold):
 
         best_chromosome = []
         best_score = []
@@ -89,15 +94,15 @@ class geneticFeatureSelection():
         for i in range(n_generations):
             # print(f"length before fitting: {len(next_generation)}")
             
-            scores, population_after_fitting = self.fitness_scores(next_generation)
+            scores, population_after_fitting = self.fitness_scores(next_generation, threshold)
             # print(f'best score in generation {i+1} : {scores[:1]}')
             # print(f"length after fitting: {len(population_after_fitting)}")
             
             population_after_selection = self.selection(population_after_fitting, n_parents)
-    #         print(f"length after selection: {len(population_after_selection)}")
+            # print(f"length after selection: {len(population_after_selection)}")
 
             population_after_crossover = self.crossover(population_after_selection)
-    #         print(f"length after crossover: {len(population_after_crossover)}")
+            # print(f"length after crossover: {len(population_after_crossover)}")
             
             next_generation = self.mutate(population_after_crossover, mutation_rate, n_features)
             best_chromosome.append(population_after_fitting[0])
